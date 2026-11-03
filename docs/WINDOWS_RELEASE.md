@@ -22,7 +22,8 @@
 - 候选包附带 Python、PyInstaller、OpenSSL、DayNest 的许可证以及 Python Windows CRT 的附加条件。微软运行库、SQLite 及其他实际二进制的完整对应说明仍需核实。
 - PySide 6.12.0 官方发行说明称 Python 3.15 为初步支持；当前本机测试通过不代表其他环境兼容性已经验证。
 - CPython 官方附带 Windows CRT 再分发附加条件，已纳入候选包；PySide6 和 Shiboken 中的 VC++ DLL 与 Python 安装目录中的同名文件并不完全一致，不能据此认定它们具有相同再分发依据。微软文档将运行库再分发与 Visual Studio 许可关联，当前尚未确认相应分发权。便携版以开箱即用为目标，实验性的系统运行库方案不作为当前发布方案。
-- 从 PySide 安装环境复制同版本 Qt6Core.dll 到解压候选包后，程序能正常启动。这仅验证相同文件的替换路径，不能视为修改版 Qt 库的替换测试。
+- 在隔离副本中，将 `Qt6Core.dll` 替换为来自 Qt 官方 Windows MSVC 2022 6.12.0 安装包、SHA-256 不同的构建后，程序三次冒烟启动退出成功。该安装包的上游 SHA-1 校验一致，其 SHA-256 为 `219d1b86def3be418e31d704572bc4acc91b2ec373c65595c9fb12b42bf098dc`；提取的 DLL SHA-256 为 `39175459c4837c8cc0f709a637fb6eadb25d696785109c8393559ec876f02703`。这不是修改过源码的替换测试。
+- 尝试替换 Qt 6.12.1 开发快照时程序无法正常启动；静态检查显示当前 PySide6 所需的 `QtPrivate_6_12_0` 符号在该快照库中缺失。后续替换须验证精确版本及二进制兼容性。
 
 参考官方资料：[Qt 许可](https://doc.qt.io/qt-6/licensing.html)、[Qt 第三方代码](https://doc.qt.io/qt-6/licenses-used-in-qt.html)、[Qt 开源许可证 FAQ](https://www.qt.io/faq/qt-open-source-licensing)、[PySide6 6.12 源码目录](https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.12.0-src/)。
 
