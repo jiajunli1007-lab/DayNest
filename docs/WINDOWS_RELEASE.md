@@ -7,6 +7,7 @@
 - 使用项目内 `.venv-diagnostic` 中的 Python 3.15.0、PySide6 6.12.0 和 PyInstaller 6.22.3，在 Windows 11 上使用 `python -m tools.build_windows` 构建。
 - 所生成的目录式程序包含 `DayNest.exe` 和 `_internal`，必须一起分发。目标机器不需要另外安装 Python。
 - 对解压后的候选包以 `--smoke-test` 和独立测试数据库运行三次，均正常退出；干净 Windows 电脑、多显示器等仍需验证。自动测试不能替代人工验收。
+- 移除子进程的 Python、Qt 插件及虚拟环境变量，并将其 PATH 限制为 Windows 目录后，冒烟测试连续三次通过。一次运行时模块检查显示 Python 3.15 DLL、Qt Core/GUI/Widgets DLL 及检测到的 VC++ 运行库从程序包加载。这不是全新 Windows 电脑测试。
 - 未进行代码签名；不同电脑的 Windows 安全提示和兼容性尚未验证。
 
 ## 第三方许可调查
