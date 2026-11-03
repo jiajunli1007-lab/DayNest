@@ -1,0 +1,16 @@
+.venv/
+.venv-diagnostic/
+.codex/
+pyside6-install-*/
+venv-creation.log
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+data/
+build/
+dist/
+*.spec
+.build-tmp/
