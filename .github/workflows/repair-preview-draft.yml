@@ -32,13 +32,20 @@ jobs:
           if (@($release.assets).Count -ne 2) { throw 'Unexpected draft asset count.' }
           foreach ($item in $expected) {
             $asset = @($release.assets | Where-Object { $_.id -eq $item.id })
-            if ($asset.Count -ne 1 -or $asset[0].name -ne $item.old -or $asset[0].digest -ne $item.hash -or $asset[0].state -ne 'uploaded') {
+            if ($asset.Count -ne 1 -or $asset[0].name -notin @($item.old, $item.name) -or $asset[0].digest -ne $item.hash -or $asset[0].state -ne 'uploaded') {
               throw 'Draft asset does not match the verified upload.'
             }
           }
+          $headers = @{
+            Authorization = "Bearer $env:GH_TOKEN"
+            Accept = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
           foreach ($item in $expected) {
-            gh api --method PATCH "repos/$env:GITHUB_REPOSITORY/releases/assets/$($item.id)" -f "name=$($item.name)" --silent
-            if ($LASTEXITCODE -ne 0) { throw "Asset rename failed: $($item.id)" }
+            $asset = @($release.assets | Where-Object { $_.id -eq $item.id })[0]
+            if ($asset.name -eq $item.name) { continue }
+            $payload = @{ name = $item.name } | ConvertTo-Json -Compress
+            Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/assets/$($item.id)" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $payload | Out-Null
           }
           $body = @'
           DayNest Windows 预览版草稿：尚未公开发布。
@@ -51,5 +58,5 @@ jobs:
           c227e3858f2982514c70cdcdab5108e941ac441db6e0cb5d86be1cf42a8f1ca7  DayNest-Windows-x64-preview-review.zip
           149d143f92a1eb016b36863c30cc8612329b2b0627bf090446aad80800cd639b  DayNest-Qt-6.12.0-sources-review.zip
           '@
-          gh api --method PATCH "repos/$env:GITHUB_REPOSITORY/releases/$releaseId" -f "body=$body" --silent
-          if ($LASTEXITCODE -ne 0) { throw 'Draft notes update failed.' }
+          $payload = @{ body = $body } | ConvertTo-Json -Compress
+          Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/$releaseId" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $payload | Out-Null
