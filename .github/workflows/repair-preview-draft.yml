@@ -1,0 +1,55 @@
+name: Correct preview draft asset names
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repair-preview-draft.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  correct-draft:
+    if: github.repository == 'jiajunli1007-lab/DayNest'
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - name: Verify and update the unpublished draft
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $releaseId = '433764783'
+          $release = gh api "repos/$env:GITHUB_REPOSITORY/releases/$releaseId" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $release.draft -or $release.tag_name -ne 'v0.1.0-preview.1') {
+            throw 'Expected unpublished preview draft was not found.'
+          }
+          $expected = @(
+            @{ id = 709050451; old = 'DayNest-Qt-6.12.0-sources-.zip'; name = 'DayNest-Qt-6.12.0-sources-review.zip'; hash = 'sha256:149d143f92a1eb016b36863c30cc8612329b2b0627bf090446aad80800cd639b' },
+            @{ id = 709050472; old = 'DayNest-Windows-x64-preview-.zip'; name = 'DayNest-Windows-x64-preview-review.zip'; hash = 'sha256:c227e3858f2982514c70cdcdab5108e941ac441db6e0cb5d86be1cf42a8f1ca7' }
+          )
+          if (@($release.assets).Count -ne 2) { throw 'Unexpected draft asset count.' }
+          foreach ($item in $expected) {
+            $asset = @($release.assets | Where-Object { $_.id -eq $item.id })
+            if ($asset.Count -ne 1 -or $asset[0].name -ne $item.old -or $asset[0].digest -ne $item.hash -or $asset[0].state -ne 'uploaded') {
+              throw 'Draft asset does not match the verified upload.'
+            }
+          }
+          foreach ($item in $expected) {
+            gh api --method PATCH "repos/$env:GITHUB_REPOSITORY/releases/assets/$($item.id)" -f "name=$($item.name)" --silent
+            if ($LASTEXITCODE -ne 0) { throw "Asset rename failed: $($item.id)" }
+          }
+          $body = @'
+          DayNest Windows 预览版草稿：尚未公开发布。
+
+          程序、运行库和 Qt 源码材料均为待审核附件。独立 Windows 构建、自动测试、
+          程序解压启动和数据库创建已通过；真实桌面交互、其他设备及许可细节仍需核验。
+          发布前需要检查 Qt 对应源码和替换方式，以及微软运行库的最终分发条件。
+
+          SHA-256:
+          c227e3858f2982514c70cdcdab5108e941ac441db6e0cb5d86be1cf42a8f1ca7  DayNest-Windows-x64-preview-review.zip
+          149d143f92a1eb016b36863c30cc8612329b2b0627bf090446aad80800cd639b  DayNest-Qt-6.12.0-sources-review.zip
+          '@
+          gh api --method PATCH "repos/$env:GITHUB_REPOSITORY/releases/$releaseId" -f "body=$body" --silent
+          if ($LASTEXITCODE -ne 0) { throw 'Draft notes update failed.' }

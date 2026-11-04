@@ -19,6 +19,7 @@
 - `licenses/` 中 LGPL-3.0 和 GPL-3.0 文本从 Qt 6.12.0 官方源码取得，文件 Git blob 哈希已与上游一致。工具已整理上游许可文本和归属记录，v3 资料包中 92 份归属记录的 87 处明确许可文件引用均可找到；这不代表实际二进制所需材料已全面核对。
 - 已从 Qt 官方站点取得 Qt 6.12.0 的 qtbase、qtdeclarative、qtimageformats、qtshadertools、qtsvg 和 PySide6 源码压缩包，分别通过官方 SHA-256 校验；qtshadertools 用于补充 Qt Quick 的构建工具源码。这些文件暂存在本机构建目录，尚未公开提供，也还需要核对它们是否完整对应实际二进制及其编译选项。
 - 构建目录内 12 个 Qt6 DLL 与本机 PySide6 安装文件的 SHA-256 一致；候选包排除了其中未使用的 Qt6Pdf.dll。这只能说明文件与安装环境一致，不能证明上游源码完整对应。
+- 已从 PyPI 下载 Windows x64 的 PySide6 Essentials 和 Shiboken 6.12.0 wheel，并分别核对 PyPI 公布的 SHA-256。v12 候选包中 37 个 PySide6 二进制与 Essentials wheel 的对应文件逐个 SHA-256 一致，两个 Shiboken 二进制与其 wheel 一致；核对时排除了单独统一的微软运行库。这证明这些文件来自相应上游发行包，不证明源码构建过程已经独立复现。
 - 候选包包含 Qt 官方所述的 Mesa llvmpipe 软件渲染库 `opengl32sw.dll`，已收录 Qt 6.12 上游的 Mesa 与 LLVM 归属资料；具体二进制及构建来源仍需核对。运行环境查询显示 Python 使用 OpenSSL 3.5.9 和 SQLite 3.53.4。
 - 候选包附带 Python、PyInstaller、OpenSSL、DayNest 的许可证以及 Python Windows CRT 的附加条件。微软运行库、SQLite 及其他实际二进制的完整对应说明仍需核实。
 - PySide 6.12.0 官方发行说明称 Python 3.15 为初步支持；当前本机测试通过不代表其他环境兼容性已经验证。
