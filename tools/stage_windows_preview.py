@@ -24,7 +24,8 @@ INSTALL_INFO = """DayNest Windows 预览版
 DayNest 代码采用 MIT 许可证；本包中 Qt、PySide6、Python、微软运行库和
 其他组件分别适用各自的许可，见 licenses 目录。Qt 和 PySide6 对应源码材料
 应与此预览包一同提供；使用者可按 QT_REPLACEMENT.md 的说明更换兼容的库。
-微软运行库许可：https://aka.ms/VCRedistLicense
+使用附带的微软运行库前，请阅读并同意适用于该组件的许可：
+https://aka.ms/VCRedistLicense
 """
 
 SOURCE_INFO = """Qt 6.12.0 / PySide6 6.12.0 官方源码材料
@@ -34,6 +35,27 @@ sources 目录中是 Qt 官方发布的原始源码压缩包，SHA256SUMS.txt �
 源码与所用二进制版本相同，但尚未独立复现上游二进制构建。
 Qt 的其他第三方许可及归属信息见 DayNest 程序包内的 licenses 目录。
 构建说明：https://doc.qt.io/qtforpython-6/building_from_source/index.html
+"""
+
+PUBLIC_QT_GUIDE = """# Qt 和 PySide6 源码与更换说明
+
+本程序使用动态链接的 Qt 6.12.0、PySide6 6.12.0 和 Shiboken 6.12.0。
+许可证和第三方组件声明位于 licenses 文件夹，DayNest 自身代码采用 MIT 许可。
+同一发布页面的 Qt 源码附件提供官方 6.12.0 源码和 SHA-256 校验值。
+
+如需更换 Qt 或 PySide6：
+
+1. 退出 DayNest 并复制整个程序文件夹；建议在程序内另外备份个人数据。
+2. 使用源码、Windows x64 和兼容工具链构建同一版本的共享库；必要时同时
+   构建相匹配的 PySide6、Shiboken 和插件。官方说明：
+   https://doc.qt.io/qt-6/windows-building.html
+   https://doc.qt.io/qtforpython-6/building_from_source/windows.html
+3. 在副本中替换 _internal/PySide6 下同名 DLL，或替换其 plugins 子目录中的
+   插件及 _internal/shiboken6 中匹配的文件，然后启动检查。
+
+已有测试使用不同的 Qt 官方 6.12.0 Qt6Core.dll 成功启动；自行修改源码后的
+完整重建尚未独立验证。Qt 6.12.1 开发快照曾因私有接口不兼容而启动失败，
+因此不能假设不同补丁版本的库可直接混用。LGPL 所授予的权利不受本说明限制。
 """
 
 
@@ -112,10 +134,13 @@ def main():
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--qt-sources", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--release-preview", action="store_true", help="生成面向下载者命名的预览版文件")
     args = parser.parse_args()
     output = args.output_dir
-    app_zip = output / "DayNest-Windows-x64-preview-待审核.zip"
-    source_zip = output / "DayNest-Qt-6.12.0-sources-待审核.zip"
+    app_name = "DayNest-Windows-x64-preview.zip" if args.release_preview else "DayNest-Windows-x64-preview-待审核.zip"
+    source_name = "DayNest-Qt-6.12.0-sources.zip" if args.release_preview else "DayNest-Qt-6.12.0-sources-待审核.zip"
+    app_zip = output / app_name
+    source_zip = output / source_name
     if not output.is_dir() or app_zip.exists() or source_zip.exists():
         parser.error("输出目录不存在，或输出文件已经存在")
     try:
@@ -124,9 +149,14 @@ def main():
             check_sources(sources)
             with ZipFile(app_zip, "x", compression=ZIP_DEFLATED, compresslevel=6) as out:
                 for name in candidate.namelist():
-                    if name not in {"DayNest/内部测试说明.txt", "DayNest/WINDOWS_RELEASE.md"}:
+                    excluded = {"DayNest/内部测试说明.txt", "DayNest/WINDOWS_RELEASE.md", "DayNest/使用说明.txt"}
+                    if args.release_preview:
+                        excluded.add("DayNest/QT_REPLACEMENT.md")
+                    if name not in excluded:
                         copy_entry(candidate, out, name)
                 out.writestr("DayNest/使用说明.txt", INSTALL_INFO)
+                if args.release_preview:
+                    out.writestr("DayNest/QT_REPLACEMENT.md", PUBLIC_QT_GUIDE)
             with ZipFile(source_zip, "x", compression=ZIP_STORED, allowZip64=True) as out:
                 out.writestr("说明.txt", SOURCE_INFO)
                 out.writestr("SHA256SUMS.txt", "".join(f"{h}  {n}\n" for n, h in SOURCES.items()))
