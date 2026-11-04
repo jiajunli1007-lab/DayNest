@@ -57,4 +57,3 @@ jobs:
             throw "Packaged smoke test failed with exit code $($p.ExitCode)."
           }
           Write-Output 'Packaged application started, created a database, and exited successfully.'
-
