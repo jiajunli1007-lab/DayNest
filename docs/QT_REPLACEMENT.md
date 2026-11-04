@@ -1,10 +1,10 @@
-# Qt 和 PySide6 源码及替换说明（待验证）
+# Qt 和 PySide6 源码及替换说明
 
-DayNest 的 Windows 目录式候选包使用 PySide6 和 Qt。候选包内 Qt 版本为 6.12.0，采用 Windows x86-64、MSVC 2022、动态库构建；PySide6 为 6.12.0。Qt、PySide6 和 Shiboken 的适用许可及第三方组件声明见 `licenses` 目录。DayNest 自身源码使用 MIT 许可证。
+DayNest 的 Windows 目录式预览包使用 PySide6 和 Qt。预览包内 Qt 版本为 6.12.0，采用 Windows x86-64、MSVC 2022、动态库构建；PySide6 为 6.12.0。Qt、PySide6 和 Shiboken 的适用许可及第三方组件声明见 `licenses` 目录。DayNest 自身源码使用 MIT 许可证。
 
 ## 对应源码
 
-正在整理的源码材料包含 PySide6 6.12.0 和 Qt 6.12.0 的 qtbase、qtdeclarative、qtimageformats、qtshadertools、qtsvg 官方源码包及 SHA-256 列表。正式发布时需要让下载者同时获得源码材料，并再次核对它们与二进制构建的对应关系；目前材料尚未公开，不能把上游链接当作完成分发的证明。
+预览版的[发布页面](https://github.com/jiajunli1007-lab/DayNest/releases/tag/v0.1.0-preview.2)提供 PySide6 6.12.0 和 Qt 6.12.0 的 qtbase、qtdeclarative、qtimageformats、qtshadertools、qtsvg 官方源码包及 SHA-256 列表；尚未独立复现上游二进制构建。
 
 Qt 和 PySide6 的构建说明：
 
@@ -23,4 +23,4 @@ Qt 和 PySide6 的构建说明：
 
 另一次 Qt 6.12.1 开发快照替换测试未能启动：当前 PySide6 的 `QtCore.pyd` 引用了带有 6.12.0 私有版本标记的符号，而该 6.12.1 核心库没有对应符号。因此不能假设同一 6.12 系列的不同补丁版本可直接替换。
 
-**当前尚未完成使用修改过的 Qt 或 PySide6 源码自行构建并替换运行的实测。** 此文档不代表本候选包已经完成 LGPL 相关发布核验。
+**当前尚未完成使用修改过的 Qt 或 PySide6 源码自行构建并替换运行的实测。** 此文档不构成许可证符合性结论。

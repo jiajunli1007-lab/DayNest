@@ -12,4 +12,4 @@
 
 **项目发起与维护**：`jiajunli1007-lab`
 
-仓库和 Windows 可执行版本尚未公开发布；发布后再根据实际情况添加下载链接。
+仓库和 Windows 预览版已公开：[Windows 预览版发布页面](https://github.com/jiajunli1007-lab/DayNest/releases/tag/v0.1.0-preview.2)。

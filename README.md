@@ -9,7 +9,7 @@
 
 Windows 11 · Python · PySide6 · SQLite
 
-[功能介绍](#功能介绍) · [开始使用](#开始使用) · [常见问题](#常见问题) · [参与贡献](#参与贡献)
+[下载 Windows 预览版](https://github.com/jiajunli1007-lab/DayNest/releases/tag/v0.1.0-preview.2) · [功能介绍](#功能介绍) · [开始使用](#开始使用) · [参与贡献](#参与贡献)
 
 </div>
 
@@ -50,7 +50,14 @@ Windows 11 · Python · PySide6 · SQLite
 
 ### Windows 应用包
 
-**Windows 可执行版本尚未公开发布。** 应用包的第三方许可证和真实桌面兼容性仍在核验。准备完成后，计划通过 GitHub Releases 提供下载。
+**Windows x64 预览版现已发布。** [下载 DayNest-Windows-x64-preview.zip](https://github.com/jiajunli1007-lab/DayNest/releases/download/v0.1.0-preview.2/DayNest-Windows-x64-preview.zip)，或访问[发布页面](https://github.com/jiajunli1007-lab/DayNest/releases/tag/v0.1.0-preview.2)查看说明、源码材料和 SHA-256 校验值。
+
+1. 将 ZIP 完整解压，打开解压后的 `DayNest` 文件夹。
+2. 双击 `DayNest.exe` 启动；请保留同目录的 `_internal` 文件夹。
+
+这个便携包无需另外安装 Python。当前已在 Windows 11 本机和 GitHub Windows 构建环境做基本验证，其他设备的兼容性仍需测试。程序尚未签名，Windows 可能显示安全提示；请从本项目发布页下载并核对校验值。
+
+预览版的提醒仅在程序运行时检查；“靠后”窗口模式不是真正的 Windows 壁纸层。程序包中包含各依赖的许可说明，使用附带的微软运行库前请阅读并同意其[许可条款](https://aka.ms/VCRedistLicense)。
 
 ### 从源码运行
 
@@ -123,7 +130,7 @@ Windows 11 · Python · PySide6 · SQLite
 - 在真实 Windows 桌面上完善托盘、快捷键、提醒和多显示器体验。
 - 继续探索真正的桌面壁纸层，同时保留可用的普通窗口方案。
 - 打磨更多个性化选项与日常记录体验。
-- 完成发布所需的许可证核验和 Windows 应用包验收。
+- 继续核验第三方许可，并扩大 Windows 应用包的设备兼容性测试。
 
 以上为计划，具体功能以当前代码和发布说明为准。
 

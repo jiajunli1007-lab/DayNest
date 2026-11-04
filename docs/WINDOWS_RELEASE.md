@@ -1,6 +1,15 @@
 # Windows 发布准备记录
 
-当前状态：**内部候选包，不可作为公开发布包**。本文件记录已经取得的证据和仍需完成的工作，不构成许可证符合性结论。
+当前状态：**Windows x64 预览版已发布**，见 [v0.1.0-preview.2](https://github.com/jiajunli1007-lab/DayNest/releases/tag/v0.1.0-preview.2)。本文件保留内部候选包的验证记录及后续待核验事项，不构成许可证符合性结论。
+
+已发布附件的 SHA-256：
+
+```text
+06d5ac2ed488b57d740ca243e4b1c9e6c4e6ab87ea07bb91d1792a1bb9b35477  DayNest-Windows-x64-preview.zip
+91a7faff18cf735efad998e6de38aacec4dce2f6a8892b7b24ae1dc4cf51e822  DayNest-Qt-6.12.0-sources.zip
+```
+
+发布前，[独立 Windows 环境的附件审查](https://github.com/jiajunli1007-lab/DayNest/actions/runs/41814958214)下载实际草稿附件，核对文件哈希、官方 Qt wheel、运行库清单和源码归档，并解压启动三次。公开后，从匿名下载地址取得的程序 ZIP 与发布哈希一致，解压启动和创建测试数据库成功；这是自动冒烟测试，不能代替其他电脑的真实桌面验收。
 
 ## 构建和验证
 
@@ -17,7 +26,7 @@
 - PySide6 6.12.0 的安装元数据列出 LGPL-3.0-only、GPL-2.0-only 或 GPL-3.0-only；Qt 官方说明有些模块仅在 GPL 下提供。不能将项目的 MIT 许可证视为覆盖依赖。旧测试包曾包含不使用的 Qt Virtual Keyboard，现有构建脚本已排除该模块。候选打包工具另外排除程序未使用的 Qt PDF DLL 和插件。其他图像插件等仍需逐一确认许可证及依赖。
 - Qt 官方说明分发 LGPL 程序需要提供许可文本、声明、对应源码及用户替换或重新链接库的途径。应取得与实际分发二进制对应的完整源码和构建信息，确定可持续提供源码的方式，并实际验证用户可替换库；仅放置上游链接或版权声明不能证明所有义务均已满足。
 - `licenses/` 中 LGPL-3.0 和 GPL-3.0 文本从 Qt 6.12.0 官方源码取得，文件 Git blob 哈希已与上游一致。工具已整理上游许可文本和归属记录，v3 资料包中 92 份归属记录的 87 处明确许可文件引用均可找到；这不代表实际二进制所需材料已全面核对。
-- 已从 Qt 官方站点取得 Qt 6.12.0 的 qtbase、qtdeclarative、qtimageformats、qtshadertools、qtsvg 和 PySide6 源码压缩包，分别通过官方 SHA-256 校验；qtshadertools 用于补充 Qt Quick 的构建工具源码。这些文件暂存在本机构建目录，尚未公开提供，也还需要核对它们是否完整对应实际二进制及其编译选项。
+- 已从 Qt 官方站点取得 Qt 6.12.0 的 qtbase、qtdeclarative、qtimageformats、qtshadertools、qtsvg 和 PySide6 源码压缩包，分别通过官方 SHA-256 校验；qtshadertools 用于补充 Qt Quick 的构建工具源码。这些材料已作为预览版附件公开；尚未独立复现上游二进制构建及其编译选项。
 - 构建目录内 12 个 Qt6 DLL 与本机 PySide6 安装文件的 SHA-256 一致；候选包排除了其中未使用的 Qt6Pdf.dll。这只能说明文件与安装环境一致，不能证明上游源码完整对应。
 - 已从 PyPI 下载 Windows x64 的 PySide6 Essentials 和 Shiboken 6.12.0 wheel，并分别核对 PyPI 公布的 SHA-256。v12 候选包中 37 个 PySide6 二进制与 Essentials wheel 的对应文件逐个 SHA-256 一致，两个 Shiboken 二进制与其 wheel 一致；核对时排除了单独统一的微软运行库。这证明这些文件来自相应上游发行包，不证明源码构建过程已经独立复现。
 - 候选包包含 Qt 官方所述的 Mesa llvmpipe 软件渲染库 `opengl32sw.dll`，已收录 Qt 6.12 上游的 Mesa 与 LLVM 归属资料；具体二进制及构建来源仍需核对。运行环境查询显示 Python 使用 OpenSSL 3.5.9 和 SQLite 3.53.4。
@@ -32,13 +41,13 @@
 
 参考官方资料：[Qt 许可](https://doc.qt.io/qt-6/licensing.html)、[Qt 第三方代码](https://doc.qt.io/qt-6/licenses-used-in-qt.html)、[Qt 开源许可证 FAQ](https://www.qt.io/faq/qt-open-source-licensing)、[PySide6 6.12 源码目录](https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.12.0-src/)。
 
-## 发布前剩余事项
+## 后续仍需核验和改进
 
 1. 对最终包的每个 Qt 模块、插件和内含第三方组件完成许可与声明清单；核对 Python、OpenSSL、SQLite 和 VC++ 运行库再分发条款。
 2. 保留并提供与所用二进制严格对应的 LGPL 源码和构建信息，验证接收者能替换库并运行；准备完整的版权及许可文件。
 3. 在一台未安装 Python 和开发工具的 Windows 电脑上解压运行，人工验收桌面组件、待办、数据持久化、托盘、快捷键和退出。
 4. 确认打包内容无个人数据、凭据和构建机器路径，计算 SHA-256；记录未签名及兼容性限制。
-5. 创建 GitHub Release，上传最终 ZIP 与校验值，并更新 README 的下载入口。当前 GitHub 连接未提供 Release 创建或附件上传接口，需要可用的发布渠道。
+5. 后续版本重新检查最终附件、SHA-256 和 README 下载入口；不要将本次预览版验证扩大为对其他构建的结论。
 
 已取得的官方源码压缩包 SHA-256，供后续对应和完整性核验：
 

@@ -1,4 +1,6 @@
-# DayNest Windows 便携版预览：发布草稿
+# DayNest Windows 便携版预览：历史发布草稿
+
+当前预览版已公开，实际说明和附件以 [GitHub 发布页面](https://github.com/jiajunli1007-lab/DayNest/releases/tag/v0.1.0-preview.2)为准。以下保留发布前草稿记录。
 
 > 这份文字和本地候选包尚未构成公开发布。完成依赖许可核验、源码材料交付和发布渠道确认后，才能将其用于 GitHub Release。
 
