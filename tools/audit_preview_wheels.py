@@ -2,6 +2,7 @@
 
 import argparse
 import hashlib
+import re
 from pathlib import Path, PurePosixPath
 from zipfile import BadZipFile, ZipFile
 
@@ -12,6 +13,28 @@ WHEELS = {
     "pyside6_essentials-6.12.0-cp310-abi3-win_amd64.whl": "c9a95102aa23c1f86516a30d5a9be37552d324eee7e567eb7508973f1218cb42",
     "shiboken6-6.12.0-cp310-abi3-win_amd64.whl": "a1906cb8116869178c64b6bab52623bbc8b4ceed7b30bfc3c9aa0f6e67f6438e",
 }
+
+
+def check_release_guides(package):
+    names = set(package.namelist())
+    required = {"DayNest/使用说明.txt", "DayNest/QT_REPLACEMENT.md"}
+    internal = {"DayNest/内部测试说明.txt", "DayNest/WINDOWS_RELEASE.md"}
+    if not required.issubset(names) or names.intersection(internal):
+        raise ValueError("公开预览包缺少使用说明或包含内部审核文件")
+
+
+def check_sensitive_patterns(package):
+    """检查少数可识别的泄露模式；通过不代表证明没有其他敏感内容。"""
+    patterns = (
+        re.compile(rb"gh[pousr]_[A-Za-z0-9]{30,}"),
+        re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----\s+[A-Za-z0-9+/=\r\n]{128,}\s+-----END (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+    )
+    for name in package.namelist():
+        if name.endswith("/"):
+            continue
+        data = package.read(name)
+        if any(pattern.search(data) for pattern in patterns):
+            raise ValueError(f"程序包包含需要人工审查的敏感信息模式：{name}")
 
 
 def check_wheel(package, wheel, folder):
@@ -38,6 +61,7 @@ def main():
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--qt-sources", type=Path, required=True)
     parser.add_argument("--wheel-dir", type=Path, required=True)
+    parser.add_argument("--release-preview", action="store_true")
     args = parser.parse_args()
     try:
         for name, expected in WHEELS.items():
@@ -50,6 +74,9 @@ def main():
               ZipFile(args.wheel_dir / next(reversed(WHEELS))) as shiboken):
             check_candidate(package)
             check_sources(sources)
+            if args.release_preview:
+                check_release_guides(package)
+                check_sensitive_patterns(package)
             pyside_count = check_wheel(package, pyside, "PySide6")
             shiboken_count = check_wheel(package, shiboken, "shiboken6")
     except (BadZipFile, OSError, ValueError) as exc:

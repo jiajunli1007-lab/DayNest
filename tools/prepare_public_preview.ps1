@@ -13,7 +13,7 @@ $source = Join-Path $assets 'DayNest-Qt-6.12.0-sources.zip'
 
 # 从 PyPI 下载官方 wheel，并以固定 SHA-256 和逐文件对比检查二进制来源。
 Invoke-Python -m pip download --disable-pip-version-check --no-deps --index-url https://pypi.org/simple --dest $wheels 'PySide6_Essentials==6.12.0' 'shiboken6==6.12.0'
-Invoke-Python -B -m tools.audit_preview_wheels --package $app --qt-sources $source --wheel-dir $wheels
+Invoke-Python -B -m tools.audit_preview_wheels --package $app --qt-sources $source --wheel-dir $wheels --release-preview
 
 $check = Join-Path $PWD '.build-tmp\public-preview-smoke'
 New-Item -ItemType Directory -Path $check -ErrorAction Stop | Out-Null
