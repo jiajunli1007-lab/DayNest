@@ -4,10 +4,40 @@ from pathlib import Path
 from zipfile import ZipFile
 from tools.build_windows import remove_unused_virtual_keyboard
 from tools.prepare_qt_materials import SOURCES
-from tools.prepare_windows_candidate import validate_qt_notices
+from tools.prepare_windows_candidate import VC_RUNTIME_NAMES, select_vc_runtimes, validate_qt_notices
 
 
 class BuildTest(unittest.TestCase):
+    def test_runtime_selection_replaces_duplicates_and_preserves_original(self):
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as directory:
+            root = Path(directory)
+            bundle = root / 'bundle'
+            runtime = root / 'runtime'
+            bundle.mkdir()
+            runtime.mkdir()
+            for name in VC_RUNTIME_NAMES:
+                (bundle / name).write_bytes(b'old')
+                (runtime / name).write_bytes(b'new')
+            nested = bundle / 'nested'
+            nested.mkdir()
+            (nested / 'msvcp140.dll').write_bytes(b'old')
+            selected = select_vc_runtimes(bundle, runtime)
+            self.assertEqual(len(selected), len(VC_RUNTIME_NAMES) + 1)
+            self.assertEqual(selected[nested / 'msvcp140.dll'].read_bytes(), b'new')
+            self.assertEqual((nested / 'msvcp140.dll').read_bytes(), b'old')
+
+    def test_runtime_selection_refuses_incomplete_microsoft_files(self):
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as directory:
+            root = Path(directory)
+            bundle = root / 'bundle'
+            runtime = root / 'runtime'
+            bundle.mkdir()
+            runtime.mkdir()
+            for name in VC_RUNTIME_NAMES:
+                (bundle / name).write_bytes(b'old')
+            with self.assertRaisesRegex(ValueError, '微软运行库缺少文件'):
+                select_vc_runtimes(bundle, runtime)
+
     def test_excludes_only_unused_virtual_keyboard(self):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as directory:
             bundle = Path(directory)

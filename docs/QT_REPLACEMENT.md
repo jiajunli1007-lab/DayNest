@@ -4,7 +4,7 @@ DayNest 的 Windows 目录式候选包使用 PySide6 和 Qt。候选包内 Qt �
 
 ## 对应源码
 
-正在整理的源码材料包含 PySide6 6.12.0 和 Qt 6.12.0 的 qtbase、qtdeclarative、qtimageformats、qtsvg 官方源码包及 SHA-256 列表。正式发布时需要让下载者同时获得源码材料，并再次核对它们与二进制构建的对应关系；目前材料尚未公开，不能把上游链接当作完成分发的证明。
+正在整理的源码材料包含 PySide6 6.12.0 和 Qt 6.12.0 的 qtbase、qtdeclarative、qtimageformats、qtshadertools、qtsvg 官方源码包及 SHA-256 列表。正式发布时需要让下载者同时获得源码材料，并再次核对它们与二进制构建的对应关系；目前材料尚未公开，不能把上游链接当作完成分发的证明。
 
 Qt 和 PySide6 的构建说明：
 

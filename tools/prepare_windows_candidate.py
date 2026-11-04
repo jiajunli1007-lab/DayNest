@@ -1,6 +1,7 @@
 """生成供本机验证的 Windows 候选 ZIP；它不是已审核的公开发布包。"""
 
 import argparse
+import hashlib
 import json
 import os
 import posixpath
@@ -9,6 +10,29 @@ from pathlib import Path, PurePosixPath
 from zipfile import BadZipFile, ZIP_DEFLATED, ZipFile
 
 from tools.prepare_qt_materials import SOURCES
+
+VC_RUNTIME_NAMES = frozenset({
+    "msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll",
+    "vcruntime140.dll", "vcruntime140_1.dll",
+})
+
+
+def select_vc_runtimes(bundle, runtime_dir):
+    """检查并选择统一的运行库；不修改原始构建目录。"""
+    selected = {}
+    present = set()
+    for path in bundle.rglob("*"):
+        name = path.name.lower()
+        if path.is_file() and name in VC_RUNTIME_NAMES:
+            replacement = runtime_dir / name
+            if not replacement.is_file():
+                raise ValueError(f"微软运行库缺少文件：{name}")
+            selected[path] = replacement
+            present.add(name)
+    missing = VC_RUNTIME_NAMES - present
+    if missing:
+        raise ValueError("构建目录缺少预期运行库：" + ", ".join(sorted(missing)))
+    return selected
 
 
 def is_unused_pdf_component(relative_path):
@@ -53,6 +77,7 @@ def main():
     parser.add_argument("--bundle", type=Path, required=True, help="构建后的 DayNest 目录")
     parser.add_argument("--output", type=Path, required=True, help="新 ZIP 路径；不得已存在")
     parser.add_argument("--qt-notices", type=Path, required=True, help="已整理的 Qt 许可资料 ZIP")
+    parser.add_argument("--vc-runtime-dir", type=Path, help="包含微软原版 x64 运行库的目录")
     args = parser.parse_args()
     # AppContainer 可能无法查询真实路径；abspath 只规范化路径文本。
     root = Path(os.path.abspath(__file__)).parent.parent
@@ -69,6 +94,7 @@ def main():
         "DayNest-MIT.txt": root / "LICENSE",
         "Python-LICENSE.txt": Path(sys.base_prefix) / "LICENSE.txt",
         "Python-Windows-CRT.txt": root / "docs/licenses/Python-Windows-CRT.txt",
+        "Microsoft-VC-Runtime-2026.txt": root / "docs/licenses/Microsoft-VC-Runtime-2026.txt",
         "OpenSSL-3.5.9-LICENSE.txt": root / "docs/licenses/OpenSSL-3.5.9-LICENSE.txt",
         "Qt-Mesa-llvmpipe.txt": root / "docs/licenses/Qt-Mesa-llvmpipe.txt",
         "Qt-LLVM.txt": root / "docs/licenses/Qt-LLVM.txt",
@@ -83,6 +109,10 @@ def main():
         validate_qt_notices(args.qt_notices)
     except (BadZipFile, OSError, KeyError, ValueError) as exc:
         parser.error(f"Qt 许可材料无法通过检查：{exc}")
+    try:
+        runtimes = select_vc_runtimes(bundle, args.vc_runtime_dir) if args.vc_runtime_dir else {}
+    except (OSError, ValueError) as exc:
+        parser.error(str(exc))
 
     instructions = """DayNest Windows 内部候选包
 
@@ -97,12 +127,17 @@ def main():
         for path in sorted(bundle.rglob("*")):
             relative = path.relative_to(bundle)
             if path.is_file() and not is_unused_pdf_component(relative):
-                archive.write(path, Path("DayNest") / relative)
+                archive.write(runtimes.get(path, path), Path("DayNest") / relative)
         archive.writestr("DayNest/内部测试说明.txt", instructions)
         archive.write(root / "docs/WINDOWS_RELEASE.md", "DayNest/WINDOWS_RELEASE.md")
         archive.write(root / "docs/QT_REPLACEMENT.md", "DayNest/QT_REPLACEMENT.md")
         for name, path in licenses.items():
             archive.write(path, "DayNest/licenses/" + name)
+        if runtimes:
+            unique = {path.name.lower(): path for path in runtimes.values()}
+            hashes = "".join(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {name}\n"
+                             for name, path in sorted(unique.items()))
+            archive.writestr("DayNest/licenses/VC-Runtime-SHA256.txt", hashes)
         with ZipFile(args.qt_notices) as notices:
             for name in notices.namelist():
                 archive.writestr("DayNest/licenses/Qt-upstream/" + name, notices.read(name))

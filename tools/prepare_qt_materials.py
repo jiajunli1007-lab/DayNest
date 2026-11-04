@@ -15,6 +15,7 @@ SOURCES = {
     "qtbase-everywhere-src-6.12.0.tar.xz": "a951bd163c7b80fc6b8c88d7668fb56abf91c152373e13c10666763238131307",
     "qtdeclarative-everywhere-src-6.12.0.tar.xz": "311f3a2603e1973bb59baef9dfa740a376de713157d4782ee043681e889c9260",
     "qtimageformats-everywhere-src-6.12.0.tar.xz": "0943132b5db8de6b6a7f1d162682173e8763c7ed94e80fd39113292845f67762",
+    "qtshadertools-everywhere-src-6.12.0.tar.xz": "c7d84f436e1aaef39fdcadebf2bd71bdf24dc69497e13f2e0198873cbbfea2ab",
     "qtsvg-everywhere-src-6.12.0.tar.xz": "e4ab39534ec97987b1b9b60ef7f4d3253d5912a69f8c713a01753174a4029331",
 }
 
@@ -48,8 +49,8 @@ def main():
     args = parser.parse_args()
     if not args.output_dir.is_dir():
         parser.error("输出目录不存在")
-    sources_zip = args.output_dir / "DayNest-Qt源码材料-v2-待审核.zip"
-    notices_zip = args.output_dir / "DayNest-Qt许可资料-v2-待审核.zip"
+    sources_zip = args.output_dir / "DayNest-Qt源码材料-v3-待审核.zip"
+    notices_zip = args.output_dir / "DayNest-Qt许可资料-v3-待审核.zip"
     if sources_zip.exists() or notices_zip.exists():
         parser.error("输出文件已存在，停止以保护原有文件")
     verify_sources(args.source_dir)

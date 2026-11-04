@@ -1,0 +1,15 @@
+Microsoft Visual C++ Runtime 2026
+
+This package includes Microsoft Visual C++ Runtime DLLs.
+Copyright Microsoft Corporation. All rights reserved by Microsoft.
+
+Microsoft's runtime license terms:
+https://aka.ms/VCRedistLicense
+
+Microsoft's Visual Studio distributable-code list:
+https://learn.microsoft.com/en-us/visualstudio/releases/2026/redistribution
+
+These Microsoft terms apply to the Microsoft components. DayNest and other
+third-party components are separately licensed; see the other notices in
+this directory. The source code and replacement rights for LGPL components
+are not limited by this Microsoft notice.
