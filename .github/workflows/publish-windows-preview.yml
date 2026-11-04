@@ -47,19 +47,30 @@ jobs:
             }
           }
           $prefix = "> 草稿：尚未公开发布；完成发布前检查后再公开。`n`n"
-          if (-not $release.body.StartsWith($prefix)) { throw 'Draft release notes changed; stop for review.' }
-          $notes = $release.body.Substring($prefix.Length)
+          if ($release.body.StartsWith($prefix)) {
+            $notes = $release.body.Substring($prefix.Length)
+          } elseif ($release.name -eq 'DayNest Windows 预览版 v0.1.0-preview.2') {
+            $notes = $release.body
+          } else { throw 'Draft release notes changed; stop for review.' }
           foreach ($item in $expected) {
             if (-not $notes.Contains(($item.digest.Substring(7) + '  ' + $item.name))) { throw 'Release notes do not match the verified assets.' }
           }
+          # 先更新说明并验证草稿仍未公开，再单独执行发布，便于检查部分成功的情况。
           $payload = @{
             tag_name = 'v0.1.0-preview.2'
             target_commitish = 'ecdab28e7498f162e5c934b0934d8865dcfc836b'
             name = 'DayNest Windows 预览版 v0.1.0-preview.2'
             body = $notes
+          } | ConvertTo-Json -Compress -EscapeHandling EscapeNonAscii
+          $updated = Invoke-RestMethod -Method Patch -Uri "$base/releases/433784914" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $payload
+          if (-not $updated.draft -or $updated.tag_name -ne 'v0.1.0-preview.2' -or $updated.body -ne $notes) {
+            throw 'Draft notes verification failed; stopped before publishing.'
+          }
+          $payload = @{
+            tag_name = 'v0.1.0-preview.2'
+            target_commitish = 'ecdab28e7498f162e5c934b0934d8865dcfc836b'
             draft = $false
             prerelease = $true
-            make_latest = 'false'
-          } | ConvertTo-Json -Compress -EscapeHandling EscapeNonAscii
+          } | ConvertTo-Json -Compress
           Invoke-RestMethod -Method Patch -Uri "$base/releases/433784914" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $payload | Out-Null
           Write-Output 'Published the verified Windows preview.'
