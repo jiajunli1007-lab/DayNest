@@ -58,5 +58,6 @@ jobs:
           c227e3858f2982514c70cdcdab5108e941ac441db6e0cb5d86be1cf42a8f1ca7  DayNest-Windows-x64-preview-review.zip
           149d143f92a1eb016b36863c30cc8612329b2b0627bf090446aad80800cd639b  DayNest-Qt-6.12.0-sources-review.zip
           '@
-          $payload = @{ body = $body } | ConvertTo-Json -Compress
+          # 使用 ASCII JSON 转义，避免多语言正文在请求传输中发生编码问题。
+          $payload = @{ body = $body } | ConvertTo-Json -Compress -EscapeHandling EscapeNonAscii
           Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/$releaseId" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $payload | Out-Null
