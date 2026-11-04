@@ -1,0 +1,65 @@
+name: Publish verified Windows preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-windows-preview.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    if: github.repository == 'jiajunli1007-lab/DayNest'
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - name: Publish only the verified preview draft
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $headers = @{
+            Authorization = "Bearer $env:GH_TOKEN"
+            Accept = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          $base = "https://api.github.com/repos/$env:GITHUB_REPOSITORY"
+          $audit = Invoke-RestMethod -Uri "$base/actions/runs/41814958214" -Headers $headers
+          if ($audit.status -ne 'completed' -or $audit.conclusion -ne 'success' -or $audit.head_sha -ne 'ef3cbc7e1ec4b30f42b649b0f011098fb7cf87de') {
+            throw 'The independent uploaded-asset audit has not passed.'
+          }
+          $release = Invoke-RestMethod -Uri "$base/releases/433784914" -Headers $headers
+          if (-not $release.draft -or -not $release.prerelease -or $release.tag_name -ne 'v0.1.0-preview.2' -or $release.target_commitish -ne 'ecdab28e7498f162e5c934b0934d8865dcfc836b') {
+            throw 'The expected unpublished preview draft was not found.'
+          }
+          $expected = @(
+            @{ id = 709115110; name = 'DayNest-Windows-x64-preview.zip'; digest = 'sha256:06d5ac2ed488b57d740ca243e4b1c9e6c4e6ab87ea07bb91d1792a1bb9b35477' },
+            @{ id = 709115086; name = 'DayNest-Qt-6.12.0-sources.zip'; digest = 'sha256:91a7faff18cf735efad998e6de38aacec4dce2f6a8892b7b24ae1dc4cf51e822' }
+          )
+          if (@($release.assets).Count -ne 2) { throw 'Unexpected release asset count.' }
+          foreach ($item in $expected) {
+            $asset = @($release.assets | Where-Object { $_.id -eq $item.id })
+            if ($asset.Count -ne 1 -or $asset[0].name -ne $item.name -or $asset[0].digest -ne $item.digest -or $asset[0].state -ne 'uploaded') {
+              throw 'Release assets changed after verification.'
+            }
+          }
+          $prefix = "> 草稿：尚未公开发布；完成发布前检查后再公开。`n`n"
+          if (-not $release.body.StartsWith($prefix)) { throw 'Draft release notes changed; stop for review.' }
+          $notes = $release.body.Substring($prefix.Length)
+          foreach ($item in $expected) {
+            if (-not $notes.Contains(($item.digest.Substring(7) + '  ' + $item.name))) { throw 'Release notes do not match the verified assets.' }
+          }
+          $payload = @{
+            tag_name = 'v0.1.0-preview.2'
+            target_commitish = 'ecdab28e7498f162e5c934b0934d8865dcfc836b'
+            name = 'DayNest Windows 预览版 v0.1.0-preview.2'
+            body = $notes
+            draft = $false
+            prerelease = $true
+            make_latest = 'false'
+          } | ConvertTo-Json -Compress -EscapeHandling EscapeNonAscii
+          Invoke-RestMethod -Method Patch -Uri "$base/releases/433784914" -Headers $headers -ContentType 'application/json; charset=utf-8' -Body $payload | Out-Null
+          Write-Output 'Published the verified Windows preview.'
